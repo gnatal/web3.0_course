@@ -1,39 +1,44 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-pragma solidity 0.8.15;
+import "@openzeppelin/contracts@5.0.0/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts@5.0.0/token/ERC20/extensions/ERC20Permit.sol";
 
-contract MappingStructExample {
+contract MyToken is ERC20, ERC20Permit {
 
-    // this lesson is about tracking stuff but this is not z smart a idea
+    mapping (uint => address) public  distributionList;
+    mapping (address => bool) public  isInList;
+    uint public distributionSize;
+    uint public MAX_UINT = type(uint).max;
+    address owner;
 
-    struct Transaction {
-        uint amount;
-        uint timestamp;
+    constructor() ERC20("MyToken", "MTK") ERC20Permit("MyToken") {
+        _mint(msg.sender, 1000000 * 10 ** decimals());
+        owner = msg.sender;
     }
 
-    struct Balance {
-        uint totalBalance;
-        uint numOfDeposits;
-        mapping (uint => Transaction) deposits;
-        uint numWithdraws;
-        mapping (uint => Transaction) withdraws;
-    }   
-
-    mapping (address => Balance) public balances;
-
-    function deposit () public payable {
-        balances[msg.sender].totalBalance += msg.value;
-        Transaction memory deposit = Transaction(msg.value, block.timestamp);
-        balances[msg.sender].deposits[balances[msg.sender].numOfDeposits] = deposit;
-        balances[msg.sender].numOfDeposits++;
+    function addToDistributionList (address user) public {
+        require(user != owner, "You can't distribute to yourself");
+        if(distributionSize < MAX_UINT && !isInList[user]) {
+            distributionList[distributionSize] = user;
+            isInList[user] = true;
+            distributionSize++;
+        }
     }
 
-    function withdraw(address payable _to, uint amount) public {
-        balances[msg.sender].totalBalance -= amount;
-        Transaction memory withdraw = Transaction(amount, block.timestamp);
-        balances[msg.sender].deposits[balances[msg.sender].numWithdraws] = withdraw;
-        balances[msg.sender].numWithdraws++;
-        _to.transfer(amount);
+    function distribute () public  {
+        uint toBeDistributed = owner.balance/20000;
+        for(uint counter = 0; counter < distributionSize; counter++ ) {
+            address distributed = distributionList[counter];
+            _transfer(owner, distributed, toBeDistributed/distributionSize);
+        }
+    }
+
+    // in this function A sells the token to B fro X Eth's 
+    function sell (address payable seller, uint tokenRate) public payable  {
+        require(seller != owner, "Can't buy from the source");
+        seller.transfer(msg.value);
+        transfer(msg.sender, msg.value * tokenRate);
     }
 
 }
