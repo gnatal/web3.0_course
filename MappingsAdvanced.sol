@@ -17,3 +17,7 @@ contract MappingsSample2 {
     } 
 
 }
+
+// [t1,t2,t3,t5, ... tn] (miner fee.) [maior fee, ... menor fee]
+
+// minerador cardano minaração.
