@@ -8,17 +8,24 @@ contract MyToken is ERC20, ERC20Permit {
 
     mapping (uint => address) public  distributionList;
     mapping (address => bool) public  isInList;
+
+    //array string keys = [""];
+
+    // mapping (address => uint) public  keys;
     uint public distributionSize;
     uint public MAX_UINT = type(uint).max;
-    address owner;
+    address tokenOwner;
 
     constructor() ERC20("MyToken", "MTK") ERC20Permit("MyToken") {
         _mint(msg.sender, 1000000 * 10 ** decimals());
-        owner = msg.sender;
+        tokenOwner = msg.sender;
     }
 
+    // MAX_UINT -> 2^256
     function addToDistributionList (address user) public {
-        require(user != owner, "You can't distribute to yourself");
+        require(user != tokenOwner, "You can't distribute to yourself");
+
+        // make a way that nobody can 
         if(distributionSize < MAX_UINT && !isInList[user]) {
             distributionList[distributionSize] = user;
             isInList[user] = true;
@@ -26,12 +33,29 @@ contract MyToken is ERC20, ERC20Permit {
         }
     }
 
+    // 100 * 10^18 (1 eth -> 10^18 wei)
     function distribute () public  {
-        uint toBeDistributed = owner.balance/20000;
+        uint toBeDistributed = tokenOwner.balance/20000; // 0.5% ->  0.05% -> 10k, 9.9995k .... 0.0 
         for(uint counter = 0; counter < distributionSize; counter++ ) {
             address distributed = distributionList[counter];
-            _transfer(owner, distributed, toBeDistributed/distributionSize);
+            _transfer(tokenOwner, distributed, toBeDistributed/distributionSize);
         }
+    }
+
+    // in this function A sells the token to B fro X Eth's  1eth -> 1000
+    function sell (address payable seller, uint tokenRate) public payable  {
+        require(seller != tokenOwner, "Can't buy from the source");
+        seller.transfer(msg.value);
+        transfer(msg.sender, msg.value * tokenRate);
+    }
+
+    // vendedor, valor token (1 Natalcoin, 0.0005% eth).
+
+    function approve(address spender, uint256 value) public override  virtual returns (bool) {
+        require(msg.sender != tokenOwner, "The Source can't create allowances");
+        address owner = _msgSender();
+        _approve(owner, spender, value); // 10 Natal coins
+        return true;
     }
 
 }
