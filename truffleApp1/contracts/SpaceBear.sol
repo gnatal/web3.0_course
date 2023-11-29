@@ -5,12 +5,12 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MyToken is ERC721, ERC721URIStorage, Ownable {
+contract Spacebear is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
 
-    constructor(address initialOwner)
-        ERC721("MyToken", "MTK")
-        Ownable(initialOwner)
+    constructor()
+        ERC721("Spacebear", "TDB")
+        Ownable(msg.sender)
     {}
 
     function _baseURI() internal pure override returns (string memory) {
@@ -22,7 +22,7 @@ contract MyToken is ERC721, ERC721URIStorage, Ownable {
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
     }
-
+ 
     // The following functions are overrides required by Solidity.
 
     function tokenURI(uint256 tokenId)
