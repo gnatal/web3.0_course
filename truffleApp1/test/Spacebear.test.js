@@ -19,7 +19,9 @@ contract("Spacebear", (accounts) => {
         let txResult = await spacebearInstance.safeMint(accounts[1],"spacebear_1.json");
 
         truffleAssert.eventEmitted(txResult, 'Transfer', {from: '0x0000000000000000000000000000000000000000', to: accounts[1], tokenId: web3.utils.toBN("0")});
-
+        console.log(txResult.logs[0])
+        // since the tokenId overflows the JS integer it's stored in this format
+        // tokenId: BN { negative: 0, words: [Array], length: 1, red: null }
         assert.equal(await spacebearInstance.ownerOf(0), accounts[1], "Owner of Token is the wrong address");
     })
 })

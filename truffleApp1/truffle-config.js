@@ -46,6 +46,11 @@
 
 // const HDWalletProvider = require('@truffle/hdwallet-provider');
 
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const fs = require("fs");
+const mnemonicPhrase = fs.readFileSync(".secret").toString().trim();
+const infuraProjectID = fs.readFileSync(".infura").toString().trim();
+
 module.exports = {
   /**
    * Networks define how you connect to your ethereum client and let you set the
@@ -65,9 +70,9 @@ module.exports = {
     // options below to some value.
     //
     development: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 8545,            // Standard Ethereum port (default: none)
-     network_id: "*",       // Any network (default: none)
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
     },
     //
     // An additional network, but with some advanced options…
@@ -81,10 +86,21 @@ module.exports = {
     // },
     //
     ganache: {
-      host: "127.0.0.1",     // Localhost (default: none)
-      port: 8545,            // Standard Ethereum port (default: none)
-      network_id: "*",       // Any network (default: none) 
-    }
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+    },
+    sepolia: {
+      // must be a thunk, otherwise truffle commands may hang in CI
+      provider: () =>
+        new HDWalletProvider({
+          mnemonic: {
+            phrase: mnemonicPhrase,
+          },
+          providerOrUrl: "https://sepolia.infura.io/v3/" + infuraProjectID,
+        }),
+      network_id: "11155111",
+    },
     // Useful for deploying to a public network.
     // Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
     // goerli: {
@@ -111,18 +127,21 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.8.21",      // Fetch exact version from solc-bin (default: truffle's version)
+      version: "0.8.21", // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
+       optimizer: {
+         enabled: false,
+         runs: 200
+       },
       //  evmVersion: "byzantium"
       // }
-    }
+    },
   },
-
+  plugins: ["truffle-plugin-verify"],
+  api_keys: {
+    etherscan: fs.readFileSync(".etherscan").toString().trim(),
+  },
   // Truffle DB is currently disabled by default; to enable it, change enabled:
   // false to enabled: true. The default storage location can also be
   // overridden by specifying the adapter settings, as shown in the commented code below.
